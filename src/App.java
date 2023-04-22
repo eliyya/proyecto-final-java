@@ -48,13 +48,12 @@ public class App {
                 this.alumnos = nuevosAlumnos;                
             }
             csv.close();
-        } catch (Exception e) {
-        }
+        } catch (Exception e) {}
         
 
         if (this.alumnos.length == 0) {
-            System.out.println("No existen registros de alumnos");
-            System.out.println("Favor de registrar al menos uno");
+            System.out.println(Colors.ANSI_RED+"No existen registros de alumnos");
+            System.out.println(Colors.ANSI_RESET+"Favor de registrar al menos uno");
             agregarAlumno();
         }
         while (true) {
