@@ -46,12 +46,16 @@ public class Alumno {
 
     public String toString() {
         return "Alumno: " + this.name +
-                "\tNumero: " + this.numero +
-                "\tCarrera: " + this.getCarrera() +
-                "\tGrupo: " + this.getGroup() +
-                "\tCalificacion 1: " + this.calif_1 +
-                "\tCalificacion 2: " + this.calif_2 +
-                "\tCalificacion 3: " + this.calif_3 +
-                "\tPromedio: " + this.getPromedio();
+                "\n\tNumero: " + this.numero +
+                "\n\tCarrera: " + this.getCarrera() +
+                "\n\tGrupo: " + this.getGroup() +
+                "\n\tCalificacion 1: " + this.calif_1 +
+                "\n\tCalificacion 2: " + this.calif_2 +
+                "\n\tCalificacion 3: " + this.calif_3 +
+                "\n\tPromedio: " + this.getPromedio();
+    }
+
+    public String toCSV() {
+        return this.numero + "," + this.name + "," + this.group + "," + this.carrera + "," + this.calif_1 + "," + this.calif_2 + "," + this.calif_3;
     }
 }
