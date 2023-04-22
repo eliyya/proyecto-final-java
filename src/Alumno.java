@@ -1,34 +1,38 @@
 public class Alumno {
-    public String numero;
-    public String nombre;
-    private String grupo;
+    private String numero;
+    public String name;
+    private String group;
     private String carrera;
     public double calif_1 = 0;
     public double calif_2 = 0;
     public double calif_3 = 0;
 
-    public Alumno(String numero, String nombre) {
+    public Alumno(String numero, String name) {
         this.numero = numero;
-        this.nombre = nombre;
+        this.name = name;
     }
 
-    public Alumno(String numero, String nombre, String grupo, String carrera) {
+    public Alumno(String numero, String name, String carrera, String group) {
         this.numero = numero;
-        this.nombre = nombre;
-        this.grupo = grupo;
+        this.name = name;
         this.carrera = carrera;
+        this.group = group;
     }
 
-    public void setGrupo(String grupo) {
-        this.grupo = grupo;
+    public String getNumero() {
+        return numero;
+    }
+
+    public void setGroup(String group) {
+        this.group = group;
     }
 
     public void setCarrera(String carrera) {
         this.carrera = carrera;
     }
 
-    public String getGrupo() {
-        return grupo;
+    public String getGroup() {
+        return group;
     }
 
     public String getCarrera() {
@@ -41,10 +45,10 @@ public class Alumno {
     }
 
     public String toString() {
-        return "Alumno: " + this.nombre +
+        return "Alumno: " + this.name +
                 "\tNumero: " + this.numero +
                 "\tCarrera: " + this.getCarrera() +
-                "\tGrupo: " + this.getGrupo() +
+                "\tGrupo: " + this.getGroup() +
                 "\tCalificacion 1: " + this.calif_1 +
                 "\tCalificacion 2: " + this.calif_2 +
                 "\tCalificacion 3: " + this.calif_3 +
