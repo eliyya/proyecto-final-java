@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Scanner;
 
 public class App {
-    // lista de alumnos
     public Scanner scanner = new Scanner(System.in);
     public List<Carrera> carreras = new ArrayList<>();
 
