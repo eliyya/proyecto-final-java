@@ -1,17 +1,21 @@
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.math.BigInteger;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 public class App {
-    public Alumno[] alumnos = new Alumno[0];
+    // lista de alumnos
+    public List<Alumno> alumnos = new ArrayList<>();
     public Scanner scanner = new Scanner(System.in);
-    public String[] carreras = new String[0]; 
+    public List<String> carreras = new ArrayList<>(); 
     public static void main(String[] args) {
         clearConsole();
         new App();
@@ -24,37 +28,23 @@ public class App {
             while ((linea = csv.readLine()) != null) {
                 String[] valores = linea.split(",");
 
-                boolean existe = false;
-                for (int i = 0; i < this.carreras.length; i++) {
-                    if (this.carreras[i].equals(valores[2])) {
-                        existe = true;
-                        break;
-                    }
-                }
-
-                if (!existe) {
-                    String[] nuevasCarreras = new String[this.carreras.length + 1];
-                    for (int i = 0; i < this.carreras.length; i++) nuevasCarreras[i] = this.carreras[i];
-                    nuevasCarreras[this.carreras.length] = valores[2];
-                    this.carreras = nuevasCarreras;
-                }
+                if (!this.carreras.contains(valores[2])) this.carreras.add(valores[2]);
 
                 Alumno alumno = new Alumno(valores[0], valores[1], valores[2], valores[3]);
                 alumno.calif_1 = Double.parseDouble(valores[4]);
                 alumno.calif_2 = Double.parseDouble(valores[5]);
                 alumno.calif_3 = Double.parseDouble(valores[6]);
-                Alumno[] nuevosAlumnos = new Alumno[this.alumnos.length + 1];
-                for (int i = 0; i < this.alumnos.length; i++) {
-                    nuevosAlumnos[i] = this.alumnos[i];
-                }
-                nuevosAlumnos[alumnos.length] = alumno;
-                this.alumnos = nuevosAlumnos;                
+                this.alumnos.add(alumno);          
             }
             csv.close();
-        } catch (Exception e) {}
+        } catch (Exception e) {
+            System.out.println("Error al leer la base de datos");
+            e.printStackTrace();
+            scanner.nextLine();
+        }
         
 
-        if (this.alumnos.length == 0) {
+        if (this.alumnos.size() == 0) {
             System.out.println(Colors.ANSI_RED+"No existen registros de alumnos");
             System.out.println(Colors.ANSI_RESET+"Favor de registrar al menos uno");
             agregarAlumno();
@@ -84,13 +74,14 @@ public class App {
         var w = getTerminalCharactersWidth();
         String t = "";
         System.out.println("#".repeat(w));
-        for (int i = 0; i < this.alumnos.length; i++) {
-            System.out.println((t = "# Alumno: " + Colors.ANSI_CYAN + this.alumnos[i].name) + Colors.ANSI_RESET + " ".repeat(w - t.length() +Colors.ANSI_CYAN.length() - 1) + "#");
-            System.out.println((t = ("#     - Grupo: " + Colors.ANSI_CYAN + alumnos[i].getCarrera() + this.alumnos[i].getGroup())) + Colors.ANSI_RESET  + " ".repeat(w - t.length() + Colors.ANSI_CYAN.length() - 1) + "#");
-            System.out.println((t = "#     - Promedio: " + Colors.ANSI_CYAN + this.alumnos[i].getPromedio()) + Colors.ANSI_RESET  + " ".repeat(w - t.length() + Colors.ANSI_CYAN.length() - 1) + "#");
-            promedio += this.alumnos[i].getPromedio();
+        for (var alumno : this.alumnos) {
+            System.out.println((t = "# Alumno: " + Colors.ANSI_CYAN + alumno.name) + Colors.ANSI_RESET + " ".repeat(w - t.length() +Colors.ANSI_CYAN.length() - 1) + "#");
+            System.out.println((t = ("#     - Grupo: " + Colors.ANSI_CYAN + alumno.getCarrera() + alumno.getGroup())) + Colors.ANSI_RESET  + " ".repeat(w - t.length() + Colors.ANSI_CYAN.length() - 1) + "#");
+            System.out.println((t = "#     - Promedio: " + Colors.ANSI_CYAN + alumno.getPromedio()) + Colors.ANSI_RESET  + " ".repeat(w - t.length() + Colors.ANSI_CYAN.length() - 1) + "#");
+            System.out.println("#" + " ".repeat(w-1) + "#");
+            promedio += alumno.getPromedio();
         }
-        promedio = promedio / this.alumnos.length;
+        promedio = promedio / this.alumnos.size();
         System.out.println((t = "# Promedio general: " + Colors.ANSI_BLUE + promedio) + Colors.ANSI_RESET + " ".repeat(w - t.length() + Colors.ANSI_BLUE.length() - 1) + "#");
         System.out.println("#".repeat(w));
         System.out.print("Presione enter para continuar...");
@@ -118,18 +109,20 @@ public class App {
                 System.out.println(Colors.ANSI_RED+"Opcion invalida"+Colors.ANSI_RESET);
                 continue;
             }
-            carrera = this.carreras[opcion - 1];
+            carrera = this.carreras.get(opcion - 1);
             break;
         }
 
         double promedio = 0;
-        for (int i = 0; i < this.alumnos.length; i++) {
-            if (this.alumnos[i].getCarrera().equals(carrera)) {
-                System.out.println("Alumno: " + this.alumnos[i].name + " - Grupo: " + this.alumnos[i].getGroup()+alumnos[i].getCarrera() + " - Promedio: " + this.alumnos[i].getPromedio());
-                promedio += this.alumnos[i].getPromedio();
+        int ca = 0;
+        for (var alumno : this.alumnos) {
+            if (alumno.getCarrera().equals(carrera)) {
+                System.out.println("Alumno: " + alumno.name + " - Grupo: " + alumno.getCarrera() + alumno.getGroup() + " - Promedio: " + alumno.getPromedio());
+                promedio += alumno.getPromedio();
+                ca++;
             }
         }
-        promedio = promedio / this.alumnos.length;
+        promedio = promedio / ca;
         System.out.println("Promedio de " + carrera + ": " + promedio);
     }
 
@@ -155,27 +148,29 @@ public class App {
                 System.out.println(Colors.ANSI_RED+"Opcion invalida"+Colors.ANSI_RESET);
                 continue;
             }
-            carrera = this.carreras[opcion - 1];
+            carrera = this.carreras.get(opcion - 1);
             break;
         }
 
         System.out.print("Ingresa el grupo: ");
         String grupo = scanner.nextLine();
         double promedio = 0;
-        for (int i = 0; i < this.alumnos.length; i++) {
-            if (this.alumnos[i].getGroup().equals(grupo) && this.alumnos[i].getCarrera().equals(carrera)) {
-                System.out.println("Alumno: " + this.alumnos[i].name + " - Grupo: " + this.alumnos[i].getGroup()+alumnos[i].getCarrera() + " - Promedio: " + this.alumnos[i].getPromedio());
-                promedio += this.alumnos[i].getPromedio();
+        int ca = 0;
+        for (var alumno : this.alumnos) {
+            if (alumno.getGroup().equals(grupo) && alumno.getCarrera().equals(carrera)) {
+                System.out.println("Alumno: " + alumno.name + " - Grupo: " + alumno.getCarrera() + alumno.getGroup() + " - Promedio: " + alumno.getPromedio());
+                promedio += alumno.getPromedio();
+                ca++;
             }
         }
-        promedio = promedio / this.alumnos.length;
+        promedio = promedio / ca;
         System.out.println("Promedio de " + carrera+grupo + ": " + promedio);
     }
 
     public int pedirOpcion() {
         clearConsole();
         System.out.println("1.- Mostrar promedio de alumnos (general)");
-        System.out.println("2.- Mostrar detalle de alumnos (general))");
+        System.out.println("2.- Mostrar detalle de alumnos (general)");
         System.out.println("3.- Mostrar promedio de alumnos (por carrera)");
         System.out.println("4.- Mostrar promedio de alumnos (por grupo)");
         System.out.println("5.- Agregar alumno");
@@ -199,8 +194,10 @@ public class App {
 
     public void agregarAlumno() {
         // Pedir nombre
+        var o = "";
         System.out.print("Ingresa el nombre: ");
         var nombre = scanner.nextLine();
+        o += "Nombre: " + Colors.ANSI_CYAN + nombre + Colors.ANSI_RESET;
         Alumno[] matchs = new Alumno[0];
         for (var alumno : this.alumnos) 
             if (alumno.name.toLowerCase().equals(nombre.toLowerCase())) {
@@ -227,9 +224,20 @@ public class App {
 
         String numero;
         while (true) {
-            System.out.print("Ingrese el numero de control: (" + nn + ") ");
+            clearConsole();
+            System.out.print(o+"\nIngrese el numero de control: (" + nn + ") ");
             numero = scanner.nextLine().trim();
             if (numero.equals("")) numero = nn.toString();
+            else {
+                try {
+                    new BigInteger(numero);
+                } catch (Exception e) {
+                System.out.println(Colors.ANSI_RED+"Alumno existente"+Colors.ANSI_RESET);
+                    System.out.println("Presione enter para continuar...");
+                    scanner.nextLine();
+                    continue;
+                }
+            }
 
             Alumno match = null;
             for (var alumno : this.alumnos) 
@@ -239,75 +247,98 @@ public class App {
                 }
 
             if (match != null) {
-                System.out.println("Alumno existente");
-                System.out.print("Cambiar numero de control? (s/N)");
-                String respuesta = scanner.nextLine();
-                if (respuesta.toLowerCase().equals("s")) continue;
+                System.out.println(Colors.ANSI_RED+"Alumno existente"+Colors.ANSI_RESET);
+                System.out.println("Presione enter para continuar...");
+                scanner.nextLine();
+                continue;
             }
             break;
         }
+        o += "\nNumero de control: " + Colors.ANSI_CYAN + numero + Colors.ANSI_RESET;
 
         // Pedir carrera
-        System.out.println("Ahora ingresemos las carreras");
         String ncarrera;
         while (true) {
+            clearConsole();
+            System.out.println(o+"\nAhora ingresemos las carreras");
             int tn = 0;
-            if (this.carreras.length > 0) {
+            if (this.carreras.size() > 0) {
                 System.out.println("Carreras disponibles");
                 for (var carrera : this.carreras) {
                     System.out.println((++tn) + ".- " + carrera);
                 }
             }
             System.out.println((++tn) + ".- Nueva carrera");
-            System.out.print("Seleccione una opcion: ");
+            System.out.print("> ");
             int opcion = 0;
 
             try { 
                 opcion = Integer.parseInt(scanner.nextLine());
             } catch (Exception e) {
                 System.out.println(Colors.ANSI_RED+"Opcion invalida"+Colors.ANSI_RESET);
+                System.out.println("Presione enter para continuar...");
+                scanner.nextLine();
                 continue;
             }
             if (opcion < 1 || opcion > tn) {
                 System.out.println(Colors.ANSI_RED+"Opcion invalida"+Colors.ANSI_RESET);
+                System.out.println("Presione enter para continuar...");
+                scanner.nextLine();
                 continue;
             }
 
             if (opcion == tn) {
-                System.out.print("Ingrese el nombre de la carrera: ");
-                String carrera = scanner.nextLine();
-                String[] carreras = new String[this.carreras.length + 1];
-                for (int i = 0; i < this.carreras.length; i++) carreras[i] = this.carreras[i];
-                carreras[carreras.length - 1] = carrera;
-                this.carreras = carreras;
+                String carrera = "";
+                while (true) {
+                    clearConsole();
+                    System.out.print(o+"\nIngrese el nombre de la carrera: ");
+                    carrera = scanner.nextLine();
+                    if (this.carreras.contains(carrera)) {
+                        System.out.println(Colors.ANSI_RED+"Carrera existente"+Colors.ANSI_RESET);
+                        System.out.println("Presione enter para continuar...");
+                        scanner.nextLine();
+                        continue;
+                    } else break;
+                }
+                this.carreras.add(carrera);
                 ncarrera = carrera;
                 break;
             } else {
-                ncarrera = this.carreras[opcion - 1];
+                ncarrera = this.carreras.get(opcion - 1);
                 break;
             }
         }
+        o += "\nCarrera: " + Colors.ANSI_CYAN + ncarrera + Colors.ANSI_RESET;
 
         // Pedir grupo
-        System.out.println("Ingresa el grupo: ");
+        clearConsole();
+        System.out.println(o+"\nIngresa el grupo: ");
         String grupo = scanner.nextLine();
+        o += "\nGrupo: " + Colors.ANSI_CYAN + grupo + Colors.ANSI_RESET;
 
         Alumno alumno = new Alumno(numero, nombre, grupo, ncarrera);
 
         // Pedir materias
-        System.out.println("Ingrese la calificacion de la materia 1");
+        clearConsole();
+        System.out.println(o+"\nIngrese la calificacion de la materia 1");
         alumno.calif_1 = (Double.parseDouble(scanner.nextLine()));
-        System.out.println("Ingrese la calificacion de la materia 2");
+        o += "\nCalificacion 1: " + Colors.ANSI_CYAN + alumno.calif_1 + Colors.ANSI_RESET;
+        clearConsole();
+        System.out.println(o+"\nIngrese la calificacion de la materia 2");
         alumno.calif_2 = (Double.parseDouble(scanner.nextLine()));
-        System.out.println("Ingrese la calificacion de la materia 3");
+        o += "\nCalificacion 2: " + Colors.ANSI_CYAN + alumno.calif_2 + Colors.ANSI_RESET;
+        clearConsole();
+        System.out.println(o+"\nIngrese la calificacion de la materia 3");
         alumno.calif_3 = (Double.parseDouble(scanner.nextLine()));
+        o += "\nCalificacion 3: " + Colors.ANSI_CYAN + alumno.calif_3 + Colors.ANSI_RESET;
 
-        Alumno[] alumnos = new Alumno[this.alumnos.length + 1];
-        for (int i = 0; i < this.alumnos.length; i++) {
-            this.alumnos[i] = this.alumnos[i];
-        }
-        this.alumnos = alumnos;
-        this.alumnos[this.alumnos.length - 1] = alumno;
+        this.alumnos.add(alumno);
+        
+        clearConsole();
+        System.out.println(o+"\nAlumno agregado");
+        System.out.println("Presione enter para continuar...");
+        scanner.nextLine();
+
         updateDB();
     }
 
@@ -316,16 +347,21 @@ public class App {
     }
 
     private void updateDB() {
-        var filedir = System.getProperty("os.name").contains("Linux") ? "~/.eli_maciel_program/db.csv" : "db.csv";
         try {
-            BufferedWriter db = new BufferedWriter(new FileWriter(filedir));
+            BufferedWriter db = new BufferedWriter(new FileWriter("db.csv"));
             for (var alumno : this.alumnos) {
                 db.write(alumno.toCSV());
                 db.newLine();
             }
             db.close();
-        } catch (Exception e) {
+        } catch (FileNotFoundException e) {
             System.out.println("Error al actualizar la base de datos");
+            e.printStackTrace();
+            scanner.nextLine();
+        } catch (IOException e) {
+            System.out.println("Error al actualizar la base de datos");
+            e.printStackTrace();
+            scanner.nextLine();
         }
     }
 
@@ -347,6 +383,5 @@ public class App {
         } catch (IOException e) {
             return 0;
         }
-
     }
 }
