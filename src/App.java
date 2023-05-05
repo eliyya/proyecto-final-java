@@ -68,6 +68,31 @@ public class App {
             }
         }
     }
+    
+    public int pedirOpcion() {
+        clearConsole();
+        System.out.println("1.- Mostrar promedio de alumnos (general)");
+        System.out.println("2.- Mostrar detalle de alumnos (general)");
+        System.out.println("3.- Mostrar promedio de alumnos (por carrera)");
+        System.out.println("4.- Mostrar promedio de alumnos (por grupo)");
+        System.out.println("5.- Agregar alumno");
+        System.out.println("6.- Salir");
+
+        int opcion = 0;
+        try {
+            System.out.print("> ");
+            opcion = Integer.parseInt(scanner.nextLine());
+        } catch (Exception e) {}
+
+        if (opcion < 1 || opcion > 6) {
+            clearConsole();
+            System.out.println("Opcion no valida");
+            opcion = pedirOpcion();
+        }
+
+        clearConsole();
+        return opcion;
+    }
 
     public void mostrarPromedioGeneral() {
         double promedio = 0;
@@ -82,12 +107,33 @@ public class App {
             promedio += alumno.getPromedio();
         }
         promedio = promedio / this.alumnos.size();
+        System.out.println("#" + " ".repeat(w-1) + "#");
         System.out.println((t = "# Promedio general: " + Colors.ANSI_BLUE + promedio) + Colors.ANSI_RESET + " ".repeat(w - t.length() + Colors.ANSI_BLUE.length() - 1) + "#");
         System.out.println("#".repeat(w));
         System.out.print("Presione enter para continuar...");
         scanner.nextLine();
     }
     
+    public void mostrarDetalleGeneral() {
+        clearConsole();
+        int w = getTerminalCharactersWidth();
+        System.out.println("#".repeat(w));
+        System.out.println("#" + " ".repeat(w-2) + "#");
+        String t = "";
+        for (var alumno : this.alumnos) {
+            System.out.println((t = "# Alumno: " + Colors.ANSI_CYAN + alumno.name) + Colors.ANSI_RESET + " ".repeat(w - t.length() + Colors.ANSI_CYAN.length() - 1) + "#");
+            System.out.println((t = "#     Grupo: " + Colors.ANSI_CYAN + alumno.getCarrera() + alumno.getGroup()) + Colors.ANSI_RESET + " ".repeat(w - t.length() + Colors.ANSI_CYAN.length() - 1) + "#");
+            System.out.println((t = "#     Calificacion 1: " + Colors.ANSI_CYAN + alumno.calif_1) + Colors.ANSI_RESET + " ".repeat(w - t.length() + Colors.ANSI_CYAN.length() - 1) + "#");
+            System.out.println((t = "#     Calificacion 2: " + Colors.ANSI_CYAN + alumno.calif_2) + Colors.ANSI_RESET + " ".repeat(w - t.length() + Colors.ANSI_CYAN.length() - 1) + "#");
+            System.out.println((t = "#     Calificacion 3: " + Colors.ANSI_CYAN + alumno.calif_3) + Colors.ANSI_RESET + " ".repeat(w - t.length() + Colors.ANSI_CYAN.length() - 1) + "#");
+            System.out.println((t = "#     Promedio: " + Colors.ANSI_CYAN + alumno.getPromedio()) + Colors.ANSI_RESET + " ".repeat(w - t.length() + Colors.ANSI_CYAN.length() - 1) + "#");
+            System.out.println("#" + " ".repeat(w-2) + "#");
+        }
+        System.out.println("#".repeat(w));
+        System.out.print("Presione enter para continuar...");
+        scanner.nextLine();
+    }
+
     public void mostrarPromedioPorCarrera() {
         int tn = 0;
         String carrera = "";
@@ -165,31 +211,6 @@ public class App {
         }
         promedio = promedio / ca;
         System.out.println("Promedio de " + carrera+grupo + ": " + promedio);
-    }
-
-    public int pedirOpcion() {
-        clearConsole();
-        System.out.println("1.- Mostrar promedio de alumnos (general)");
-        System.out.println("2.- Mostrar detalle de alumnos (general)");
-        System.out.println("3.- Mostrar promedio de alumnos (por carrera)");
-        System.out.println("4.- Mostrar promedio de alumnos (por grupo)");
-        System.out.println("5.- Agregar alumno");
-        System.out.println("6.- Salir");
-
-        int opcion = 0;
-        try {
-            System.out.print("> ");
-            opcion = Integer.parseInt(scanner.nextLine());
-        } catch (Exception e) {}
-
-        if (opcion < 1 || opcion > 6) {
-            clearConsole();
-            System.out.println("Opcion no valida");
-            opcion = pedirOpcion();
-        }
-
-        clearConsole();
-        return opcion;
     }
 
     public void agregarAlumno() {
@@ -340,10 +361,6 @@ public class App {
         scanner.nextLine();
 
         updateDB();
-    }
-
-    public void mostrarDetalleGeneral() {
-        for (var alumno : this.alumnos) System.out.println("Alumno: " + alumno.name + "\n\tGrupo: " + alumno.getCarrera()+alumno.getGroup() + "\n\tCalificacion 1: " + alumno.calif_1 + "\n\tCalificacion 2: " + alumno.calif_2 + "\n\tCalificacion 3: " + alumno.calif_3 + "\n\tPromedio: " + alumno.getPromedio());
     }
 
     private void updateDB() {
