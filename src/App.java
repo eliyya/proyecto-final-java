@@ -5,17 +5,18 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.reflect.Array;
 import java.math.BigInteger;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 
 public class App {
     // lista de alumnos
-    public List<Alumno> alumnos = new ArrayList<>();
     public Scanner scanner = new Scanner(System.in);
-    public List<String> carreras = new ArrayList<>(); 
+    public List<Carrera> carreras = new ArrayList<>();
     public static void main(String[] args) {
         clearConsole();
         new App();
@@ -26,15 +27,24 @@ public class App {
             String linea;
             BufferedReader csv = new BufferedReader(new FileReader("db.csv"));
             while ((linea = csv.readLine()) != null) {
-                String[] valores = linea.split(",");
+                var valores = Arrays.asList(linea.split(",")).stream().map(String::trim).toArray(String[]::new);
 
-                if (!this.carreras.contains(valores[2])) this.carreras.add(valores[2]);
+                //check if alumno is not corrupted
+                if (valores.length != 7 || Arrays.asList(valores).contains(null) || Arrays.asList(valores).contains("")) {
+                    continue;
+                }
 
-                Alumno alumno = new Alumno(valores[0], valores[1], valores[2], valores[3]);
+                Carrera carrera = Carrera.find(carreras, valores[2]);
+                if (carrera == null) this.carreras.add(carrera = new Carrera(valores[2]));
+
+                Grupo grupo = Grupo.find(carrera.getGrupos(), valores[3]);
+                if (grupo == null) carrera.addGrupo(grupo = new Grupo(valores[3], carrera));
+
+                Alumno alumno = new Alumno(valores[0], valores[1], carrera);
                 alumno.calif_1 = Double.parseDouble(valores[4]);
                 alumno.calif_2 = Double.parseDouble(valores[5]);
                 alumno.calif_3 = Double.parseDouble(valores[6]);
-                this.alumnos.add(alumno);          
+                grupo.addAlumno(alumno);
             }
             csv.close();
         } catch (Exception e) {
@@ -44,7 +54,7 @@ public class App {
         }
         
 
-        if (this.alumnos.size() == 0) {
+        if (this.carreras.size() == 0) {
             System.out.println(Colors.ANSI_RED+"No existen registros de alumnos");
             System.out.println(Colors.ANSI_RESET+"Favor de registrar al menos uno");
             agregarAlumno();
@@ -53,6 +63,8 @@ public class App {
             int opcion = pedirOpcion();
             if (opcion == 6) {
                 System.out.println("Saliendo...");
+                updateDB();
+                clearConsole();
                 System.exit(0);
             }
             if (opcion == 1) {
@@ -99,16 +111,19 @@ public class App {
         var w = getTerminalCharactersWidth();
         String t = "";
         System.out.println("#".repeat(w));
-        for (var alumno : this.alumnos) {
-            System.out.println((t = "# Alumno: " + Colors.ANSI_CYAN + alumno.name) + Colors.ANSI_RESET + " ".repeat(w - t.length() +Colors.ANSI_CYAN.length() - 1) + "#");
-            System.out.println((t = ("#     - Grupo: " + Colors.ANSI_CYAN + alumno.getCarrera() + alumno.getGroup())) + Colors.ANSI_RESET  + " ".repeat(w - t.length() + Colors.ANSI_CYAN.length() - 1) + "#");
-            System.out.println((t = "#     - Promedio: " + Colors.ANSI_CYAN + alumno.getPromedio()) + Colors.ANSI_RESET  + " ".repeat(w - t.length() + Colors.ANSI_CYAN.length() - 1) + "#");
-            System.out.println("#" + " ".repeat(w-1) + "#");
-            promedio += alumno.getPromedio();
+        for (var carrera : this.carreras) {
+            for (var alumno : carrera.getAlumnos()) {
+                System.out.println((t = "# Alumno: " + Colors.ANSI_CYAN + alumno.nombre) + Colors.ANSI_RESET + " ".repeat(w - t.length() +Colors.ANSI_CYAN.length() - 1) + "#");
+                System.out.println((t = ("#     - Grupo: " + Colors.ANSI_CYAN + alumno.getGrupo())) + Colors.ANSI_RESET  + " ".repeat(w - t.length() + Colors.ANSI_CYAN.length() - 1) + "#");
+                System.out.println((t = "#     - Promedio: " + Colors.ANSI_CYAN + alumno.getPromedio()) + Colors.ANSI_RESET  + " ".repeat(w - t.length() + Colors.ANSI_CYAN.length() - 1) + "#");
+                System.out.println("#" + " ".repeat(w-2) + "#");
+            }
+            promedio += carrera.promedio();
         }
-        promedio = promedio / this.alumnos.size();
-        System.out.println("#" + " ".repeat(w-1) + "#");
-        System.out.println((t = "# Promedio general: " + Colors.ANSI_BLUE + promedio) + Colors.ANSI_RESET + " ".repeat(w - t.length() + Colors.ANSI_BLUE.length() - 1) + "#");
+            
+        
+        promedio = promedio / this.carreras.size();
+        System.out.println((t = "# Promedio general: " + Colors.ANSI_GREEN + promedio) + Colors.ANSI_RESET + " ".repeat(w - t.length() + Colors.ANSI_GREEN.length() - 1) + "#");
         System.out.println("#".repeat(w));
         System.out.print("Presione enter para continuar...");
         scanner.nextLine();
@@ -120,9 +135,9 @@ public class App {
         System.out.println("#".repeat(w));
         System.out.println("#" + " ".repeat(w-2) + "#");
         String t = "";
-        for (var alumno : this.alumnos) {
-            System.out.println((t = "# Alumno: " + Colors.ANSI_CYAN + alumno.name) + Colors.ANSI_RESET + " ".repeat(w - t.length() + Colors.ANSI_CYAN.length() - 1) + "#");
-            System.out.println((t = "#     Grupo: " + Colors.ANSI_CYAN + alumno.getCarrera() + alumno.getGroup()) + Colors.ANSI_RESET + " ".repeat(w - t.length() + Colors.ANSI_CYAN.length() - 1) + "#");
+        for (var carrera : this.carreras) for (var alumno : carrera.getAlumnos()) {
+            System.out.println((t = "# Alumno: " + Colors.ANSI_CYAN + alumno.nombre) + Colors.ANSI_RESET + " ".repeat(w - t.length() + Colors.ANSI_CYAN.length() - 1) + "#");
+            System.out.println((t = "#     Grupo: " + Colors.ANSI_CYAN + alumno.getGrupo()) + Colors.ANSI_RESET + " ".repeat(w - t.length() + Colors.ANSI_CYAN.length() - 1) + "#");
             System.out.println((t = "#     Calificacion 1: " + Colors.ANSI_CYAN + alumno.calif_1) + Colors.ANSI_RESET + " ".repeat(w - t.length() + Colors.ANSI_CYAN.length() - 1) + "#");
             System.out.println((t = "#     Calificacion 2: " + Colors.ANSI_CYAN + alumno.calif_2) + Colors.ANSI_RESET + " ".repeat(w - t.length() + Colors.ANSI_CYAN.length() - 1) + "#");
             System.out.println((t = "#     Calificacion 3: " + Colors.ANSI_CYAN + alumno.calif_3) + Colors.ANSI_RESET + " ".repeat(w - t.length() + Colors.ANSI_CYAN.length() - 1) + "#");
@@ -136,8 +151,9 @@ public class App {
 
     public void mostrarPromedioPorCarrera() {
         int tn = 0;
-        String carrera = "";
+        Carrera carrera;
         while (true) {
+            clearConsole();
             System.out.println("Carreras disponibles");
             for (var carrerat : this.carreras) {
                 System.out.println((++tn) + ".- " + carrerat);
@@ -149,34 +165,41 @@ public class App {
                 opcion = Integer.parseInt(scanner.nextLine());
             } catch (Exception e) {
                 System.out.println(Colors.ANSI_RED+"Opcion invalida"+Colors.ANSI_RESET);
+                System.out.println("Presione enter para continuar...");
+                scanner.nextLine();
                 continue;
             }
             if (opcion < 1 || opcion > tn) {
                 System.out.println(Colors.ANSI_RED+"Opcion invalida"+Colors.ANSI_RESET);
+                System.out.println("Presione enter para continuar...");
+                scanner.nextLine();
                 continue;
             }
             carrera = this.carreras.get(opcion - 1);
             break;
         }
-
-        double promedio = 0;
-        int ca = 0;
-        for (var alumno : this.alumnos) {
-            if (alumno.getCarrera().equals(carrera)) {
-                System.out.println("Alumno: " + alumno.name + " - Grupo: " + alumno.getCarrera() + alumno.getGroup() + " - Promedio: " + alumno.getPromedio());
-                promedio += alumno.getPromedio();
-                ca++;
-            }
+        clearConsole();
+        String t = "";
+        var w = getTerminalCharactersWidth();
+        System.out.println("#".repeat(w));
+        for (var alumno : carrera.getAlumnos()) {
+            System.out.println((t = "# Alumno: " + Colors.ANSI_CYAN + alumno.nombre) + Colors.ANSI_RESET + " ".repeat(w - t.length() +Colors.ANSI_CYAN.length() - 1) + "#");
+            System.out.println((t = ("#     - Grupo: " + Colors.ANSI_CYAN + alumno.getGrupo())) + Colors.ANSI_RESET  + " ".repeat(w - t.length() + Colors.ANSI_CYAN.length() - 1) + "#");
+            System.out.println((t = "#     - Promedio: " + Colors.ANSI_CYAN + alumno.getPromedio()) + Colors.ANSI_RESET  + " ".repeat(w - t.length() + Colors.ANSI_CYAN.length() - 1) + "#");
+            System.out.println("#" + " ".repeat(w-2) + "#");
         }
-        promedio = promedio / ca;
-        System.out.println("Promedio de " + carrera + ": " + promedio);
+        System.out.println((t = "# Promedio de " + carrera + ": "  + Colors.ANSI_GREEN + carrera.promedio())  + Colors.ANSI_RESET + " ".repeat(w - t.length() - Colors.ANSI_CYAN.length() - 1) + "#");
+        System.out.println("#".repeat(w));
+        System.out.print("Presione enter para continuar...");
+        scanner.nextLine(); 
     }
 
     public void mostrarPromedioPorGrupo() {
 
         int tn = 0;
-        String carrera = "";
+        Carrera carrera;
         while (true) {
+            clearConsole();
             System.out.println("Carreras disponibles");
             for (var carrerat : this.carreras) {
                 System.out.println((++tn) + ".- " + carrerat);
@@ -188,29 +211,44 @@ public class App {
                 opcion = Integer.parseInt(scanner.nextLine());
             } catch (Exception e) {
                 System.out.println(Colors.ANSI_RED+"Opcion invalida"+Colors.ANSI_RESET);
+                System.out.println("Presione enter para continuar...");
+                scanner.nextLine();
                 continue;
             }
             if (opcion < 1 || opcion > tn) {
                 System.out.println(Colors.ANSI_RED+"Opcion invalida"+Colors.ANSI_RESET);
+                System.out.println("Presione enter para continuar...");
+                scanner.nextLine();
                 continue;
             }
             carrera = this.carreras.get(opcion - 1);
             break;
         }
-
+        clearConsole();
         System.out.print("Ingresa el grupo: ");
-        String grupo = scanner.nextLine();
-        double promedio = 0;
-        int ca = 0;
-        for (var alumno : this.alumnos) {
-            if (alumno.getGroup().equals(grupo) && alumno.getCarrera().equals(carrera)) {
-                System.out.println("Alumno: " + alumno.name + " - Grupo: " + alumno.getCarrera() + alumno.getGroup() + " - Promedio: " + alumno.getPromedio());
-                promedio += alumno.getPromedio();
-                ca++;
-            }
+        String sgrupo = scanner.nextLine();
+        clearConsole();
+        String t = "";
+        var w = getTerminalCharactersWidth();
+        System.out.println("#".repeat(w));
+        Grupo grupo = Grupo.find(carrera.getGrupos(), sgrupo);
+        for (var alumno : grupo.getAlumnos()) {
+            System.out.println((t = "# Alumno: " + Colors.ANSI_CYAN + alumno.nombre) + Colors.ANSI_RESET + " ".repeat(w - t.length() +Colors.ANSI_CYAN.length() - 1) + "#");
+            System.out.println((t = ("#     - Grupo: " + Colors.ANSI_CYAN + alumno.getGrupo())) + Colors.ANSI_RESET  + " ".repeat(w - t.length() + Colors.ANSI_CYAN.length() - 1) + "#");
+            System.out.println((t = "#     - Promedio: " + Colors.ANSI_CYAN + alumno.getPromedio()) + Colors.ANSI_RESET  + " ".repeat(w - t.length() + Colors.ANSI_CYAN.length() - 1) + "#");
+            System.out.println("#" + " ".repeat(w-2) + "#");
         }
-        promedio = promedio / ca;
-        System.out.println("Promedio de " + carrera+grupo + ": " + promedio);
+        if (grupo == null || grupo.getAlumnos().size() == 0) {
+            System.out.println((t = "# No se encontraron alumnos de " + grupo) + " ".repeat(w - t.length() - 1) + "#");
+            System.out.println("#" + " ".repeat(w-2) + "#");
+            System.out.println("Presione enter para continuar...");
+            scanner.nextLine();
+            return;
+        }
+        System.out.println((t = "Promedio de " + grupo + ": " + Colors.ANSI_GREEN + grupo.promedio()) + Colors.ANSI_RESET + " ".repeat(w - t.length() + Colors.ANSI_CYAN.length() - 1) + "#");
+        System.out.println("#".repeat(w));
+        System.out.println("Presione enter para continuar...");
+        scanner.nextLine();
     }
 
     public void agregarAlumno() {
@@ -219,17 +257,12 @@ public class App {
         System.out.print("Ingresa el nombre: ");
         var nombre = scanner.nextLine();
         o += "Nombre: " + Colors.ANSI_CYAN + nombre + Colors.ANSI_RESET;
-        Alumno[] matchs = new Alumno[0];
-        for (var alumno : this.alumnos) 
-            if (alumno.name.toLowerCase().equals(nombre.toLowerCase())) {
-                Alumno[] newMatch = new Alumno[matchs.length+1];
-                newMatch[matchs.length] = alumno;
-            }
-        if (matchs.length > 0) {
+        List<Alumno> matchs = new ArrayList<>();
+        for (var carrera : this.carreras) 
+            matchs.addAll(carrera.encontrarAlumnosPorNombre(nombre));
+        if (matchs.size() > 0) {
             System.out.println("Alumnos encontrados");
-            for (int i = 0; i < matchs.length; i++) {
-                System.out.println((i+1) + ".- (" + matchs[i].getNumero() + ") " + matchs[i].name);
-            }
+            for (int i = 0; i < matchs.size(); i++) System.out.println((i+1) + ".- (" + matchs.get(i).getNumero() + ") " + matchs.get(i).nombre);
             System.out.print("Desea continuar? (S/n) ");
             String respuesta = scanner.nextLine();
             if (respuesta.toLowerCase().equals("n")) return;
@@ -237,7 +270,7 @@ public class App {
 
         // Pedir numero de control
         BigInteger nn = new BigInteger("0");
-        for (Alumno alumno : this.alumnos) {
+        for (var carrera : this.carreras) for (Alumno alumno : carrera.getAlumnos()) {
             var n = new BigInteger(alumno.getNumero());
             if (n.compareTo(nn) > 0) nn = n;
         }
@@ -253,21 +286,22 @@ public class App {
                 try {
                     new BigInteger(numero);
                 } catch (Exception e) {
-                System.out.println(Colors.ANSI_RED+"Alumno existente"+Colors.ANSI_RESET);
+                    System.out.println(Colors.ANSI_RED+"Alumno existente"+Colors.ANSI_RESET);
                     System.out.println("Presione enter para continuar...");
                     scanner.nextLine();
                     continue;
                 }
             }
 
-            Alumno match = null;
-            for (var alumno : this.alumnos) 
-                if (alumno.getNumero().equals(numero)) {
-                    match = alumno;
+            boolean ex = false;
+            for (var carrera : this.carreras) for (Alumno alumno : carrera.getAlumnos()) {
+                var n = new BigInteger(alumno.getNumero());
+                if (n.compareTo(nn) == 0) {
+                    ex = true;
                     break;
                 }
-
-            if (match != null) {
+            }
+            if (ex) {
                 System.out.println(Colors.ANSI_RED+"Alumno existente"+Colors.ANSI_RESET);
                 System.out.println("Presione enter para continuar...");
                 scanner.nextLine();
@@ -278,7 +312,7 @@ public class App {
         o += "\nNumero de control: " + Colors.ANSI_CYAN + numero + Colors.ANSI_RESET;
 
         // Pedir carrera
-        String ncarrera;
+        Carrera ncarrera;
         while (true) {
             clearConsole();
             System.out.println(o+"\nAhora ingresemos las carreras");
@@ -314,15 +348,14 @@ public class App {
                     clearConsole();
                     System.out.print(o+"\nIngrese el nombre de la carrera: ");
                     carrera = scanner.nextLine();
-                    if (this.carreras.contains(carrera)) {
+                    if (Carrera.contains(this.carreras, carrera)) {
                         System.out.println(Colors.ANSI_RED+"Carrera existente"+Colors.ANSI_RESET);
                         System.out.println("Presione enter para continuar...");
                         scanner.nextLine();
                         continue;
                     } else break;
                 }
-                this.carreras.add(carrera);
-                ncarrera = carrera;
+                this.carreras.add(ncarrera = new Carrera(carrera));
                 break;
             } else {
                 ncarrera = this.carreras.get(opcion - 1);
@@ -337,7 +370,8 @@ public class App {
         String grupo = scanner.nextLine();
         o += "\nGrupo: " + Colors.ANSI_CYAN + grupo + Colors.ANSI_RESET;
 
-        Alumno alumno = new Alumno(numero, nombre, grupo, ncarrera);
+        Alumno alumno = new Alumno(numero, nombre, ncarrera);
+        Grupo.find(ncarrera.getGrupos(), grupo).addAlumno(alumno);
 
         // Pedir materias
         clearConsole();
@@ -352,21 +386,17 @@ public class App {
         System.out.println(o+"\nIngrese la calificacion de la materia 3");
         alumno.calif_3 = (Double.parseDouble(scanner.nextLine()));
         o += "\nCalificacion 3: " + Colors.ANSI_CYAN + alumno.calif_3 + Colors.ANSI_RESET;
-
-        this.alumnos.add(alumno);
         
         clearConsole();
-        System.out.println(o+"\nAlumno agregado");
+        System.out.println(o+"\n" + Colors.ANSI_GREEN + "Alumno agregado");
         System.out.println("Presione enter para continuar...");
         scanner.nextLine();
-
-        updateDB();
     }
 
     private void updateDB() {
         try {
             BufferedWriter db = new BufferedWriter(new FileWriter("db.csv"));
-            for (var alumno : this.alumnos) {
+            for (var carrera : this.carreras) for (var alumno : carrera.getAlumnos()) {
                 db.write(alumno.toCSV());
                 db.newLine();
             }

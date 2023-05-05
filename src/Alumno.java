@@ -1,41 +1,40 @@
 public class Alumno {
     private String numero;
-    public String name;
-    private String group;
-    private String carrera;
+    public String nombre;
+    private Grupo grupo;
+    private Carrera carrera;
     public double calif_1 = 0;
     public double calif_2 = 0;
     public double calif_3 = 0;
 
     public Alumno(String numero, String name) {
         this.numero = numero;
-        this.name = name;
+        this.nombre = name;
     }
 
-    public Alumno(String numero, String name, String carrera, String group) {
+    public Alumno(String numero, String name, Carrera carrera) {
         this.numero = numero;
-        this.name = name;
+        this.nombre = name;
         this.carrera = carrera;
-        this.group = group;
     }
 
     public String getNumero() {
         return numero;
     }
 
-    public void setGroup(String group) {
-        this.group = group;
+    public void setGrupo(Grupo group) {
+        this.grupo = group;
     }
 
-    public void setCarrera(String carrera) {
+    public void setCarrera(Carrera carrera) {
         this.carrera = carrera;
     }
 
-    public String getGroup() {
-        return group;
+    public Grupo getGrupo() {
+        return grupo;
     }
 
-    public String getCarrera() {
+    public Carrera getCarrera() {
         return carrera;
     }
 
@@ -45,10 +44,10 @@ public class Alumno {
     }
 
     public String toString() {
-        return "Alumno: " + this.name +
+        return "Alumno: " + this.nombre +
                 "\n\tNumero: " + this.numero +
                 "\n\tCarrera: " + this.getCarrera() +
-                "\n\tGrupo: " + this.getGroup() +
+                "\n\tGrupo: " + this.getGrupo() +
                 "\n\tCalificacion 1: " + this.calif_1 +
                 "\n\tCalificacion 2: " + this.calif_2 +
                 "\n\tCalificacion 3: " + this.calif_3 +
@@ -56,6 +55,6 @@ public class Alumno {
     }
 
     public String toCSV() {
-        return this.numero + "," + this.name + "," + this.group + "," + this.carrera + "," + this.calif_1 + "," + this.calif_2 + "," + this.calif_3;
+        return this.numero + "," + this.nombre + "," + this.carrera + "," + this.grupo.getNombre() + "," + this.calif_1 + "," + this.calif_2 + "," + this.calif_3;
     }
 }
