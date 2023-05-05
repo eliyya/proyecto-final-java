@@ -2,7 +2,10 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.math.BigInteger;
+import java.nio.charset.Charset;
 import java.util.Scanner;
 
 public class App {
@@ -78,12 +81,20 @@ public class App {
 
     public void mostrarPromedioGeneral() {
         double promedio = 0;
+        var w = getTerminalCharactersWidth();
+        String t = "";
+        System.out.println("#".repeat(w));
         for (int i = 0; i < this.alumnos.length; i++) {
-            System.out.println("Alumno: " + this.alumnos[i].name + " - Grupo: " + this.alumnos[i].getGroup()+alumnos[i].getCarrera() + " - Promedio: " + this.alumnos[i].getPromedio());
+            System.out.println((t = "# Alumno: " + Colors.ANSI_CYAN + this.alumnos[i].name) + Colors.ANSI_RESET + " ".repeat(w - t.length() +Colors.ANSI_CYAN.length() - 1) + "#");
+            System.out.println((t = ("#     - Grupo: " + Colors.ANSI_CYAN + alumnos[i].getCarrera() + this.alumnos[i].getGroup())) + Colors.ANSI_RESET  + " ".repeat(w - t.length() + Colors.ANSI_CYAN.length() - 1) + "#");
+            System.out.println((t = "#     - Promedio: " + Colors.ANSI_CYAN + this.alumnos[i].getPromedio()) + Colors.ANSI_RESET  + " ".repeat(w - t.length() + Colors.ANSI_CYAN.length() - 1) + "#");
             promedio += this.alumnos[i].getPromedio();
         }
         promedio = promedio / this.alumnos.length;
-        System.out.println("Promedio general: " + promedio);
+        System.out.println((t = "# Promedio general: " + Colors.ANSI_BLUE + promedio) + Colors.ANSI_RESET + " ".repeat(w - t.length() + Colors.ANSI_BLUE.length() - 1) + "#");
+        System.out.println("#".repeat(w));
+        System.out.print("Presione enter para continuar...");
+        scanner.nextLine();
     }
     
     public void mostrarPromedioPorCarrera() {
@@ -97,13 +108,14 @@ public class App {
             System.out.println("Seleccione una opcion: ");
             int opcion = 0;
             try {
+            System.out.print("> ");
                 opcion = Integer.parseInt(scanner.nextLine());
             } catch (Exception e) {
-                System.out.println("Opcion invalida");
+                System.out.println(Colors.ANSI_RED+"Opcion invalida"+Colors.ANSI_RESET);
                 continue;
             }
             if (opcion < 1 || opcion > tn) {
-                System.out.println("Opcion invalida");
+                System.out.println(Colors.ANSI_RED+"Opcion invalida"+Colors.ANSI_RESET);
                 continue;
             }
             carrera = this.carreras[opcion - 1];
@@ -133,20 +145,21 @@ public class App {
             System.out.println("Seleccione una opcion: ");
             int opcion = 0;
             try {
+            System.out.print("> ");
                 opcion = Integer.parseInt(scanner.nextLine());
             } catch (Exception e) {
-                System.out.println("Opcion invalida");
+                System.out.println(Colors.ANSI_RED+"Opcion invalida"+Colors.ANSI_RESET);
                 continue;
             }
             if (opcion < 1 || opcion > tn) {
-                System.out.println("Opcion invalida");
+                System.out.println(Colors.ANSI_RED+"Opcion invalida"+Colors.ANSI_RESET);
                 continue;
             }
             carrera = this.carreras[opcion - 1];
             break;
         }
 
-        System.out.println("Ingresa el grupo: ");
+        System.out.print("Ingresa el grupo: ");
         String grupo = scanner.nextLine();
         double promedio = 0;
         for (int i = 0; i < this.alumnos.length; i++) {
@@ -160,6 +173,7 @@ public class App {
     }
 
     public int pedirOpcion() {
+        clearConsole();
         System.out.println("1.- Mostrar promedio de alumnos (general)");
         System.out.println("2.- Mostrar detalle de alumnos (general))");
         System.out.println("3.- Mostrar promedio de alumnos (por carrera)");
@@ -169,6 +183,7 @@ public class App {
 
         int opcion = 0;
         try {
+            System.out.print("> ");
             opcion = Integer.parseInt(scanner.nextLine());
         } catch (Exception e) {}
 
@@ -184,7 +199,7 @@ public class App {
 
     public void agregarAlumno() {
         // Pedir nombre
-        System.out.println("Ingresa el nombre: ");
+        System.out.print("Ingresa el nombre: ");
         var nombre = scanner.nextLine();
         Alumno[] matchs = new Alumno[0];
         for (var alumno : this.alumnos) 
@@ -197,7 +212,7 @@ public class App {
             for (int i = 0; i < matchs.length; i++) {
                 System.out.println((i+1) + ".- (" + matchs[i].getNumero() + ") " + matchs[i].name);
             }
-            System.out.println("Desea continuar? (S/n)");
+            System.out.print("Desea continuar? (S/n) ");
             String respuesta = scanner.nextLine();
             if (respuesta.toLowerCase().equals("n")) return;
         }
@@ -225,7 +240,7 @@ public class App {
 
             if (match != null) {
                 System.out.println("Alumno existente");
-                System.out.println("Cambiar numero de control? (s/N)");
+                System.out.print("Cambiar numero de control? (s/N)");
                 String respuesta = scanner.nextLine();
                 if (respuesta.toLowerCase().equals("s")) continue;
             }
@@ -244,17 +259,17 @@ public class App {
                 }
             }
             System.out.println((++tn) + ".- Nueva carrera");
-            System.out.println("Seleccione una opcion: ");
+            System.out.print("Seleccione una opcion: ");
             int opcion = 0;
 
-            try {
+            try { 
                 opcion = Integer.parseInt(scanner.nextLine());
             } catch (Exception e) {
-                System.out.println("Opcion invalida");
+                System.out.println(Colors.ANSI_RED+"Opcion invalida"+Colors.ANSI_RESET);
                 continue;
             }
             if (opcion < 1 || opcion > tn) {
-                System.out.println("Opcion invalida");
+                System.out.println(Colors.ANSI_RED+"Opcion invalida"+Colors.ANSI_RESET);
                 continue;
             }
 
@@ -291,8 +306,8 @@ public class App {
         for (int i = 0; i < this.alumnos.length; i++) {
             this.alumnos[i] = this.alumnos[i];
         }
-        alumnos[alumnos.length - 1] = alumno;
         this.alumnos = alumnos;
+        this.alumnos[this.alumnos.length - 1] = alumno;
         updateDB();
     }
 
@@ -301,8 +316,9 @@ public class App {
     }
 
     private void updateDB() {
+        var filedir = System.getProperty("os.name").contains("Linux") ? "~/.eli_maciel_program/db.csv" : "db.csv";
         try {
-            BufferedWriter db = new BufferedWriter(new FileWriter("db.csv"));
+            BufferedWriter db = new BufferedWriter(new FileWriter(filedir));
             for (var alumno : this.alumnos) {
                 db.write(alumno.toCSV());
                 db.newLine();
@@ -321,5 +337,16 @@ public class App {
             var process = new ProcessBuilder(comando).inheritIO().start();
             process.waitFor();
         } catch (Exception e) {}
+    }
+
+    public static int getTerminalCharactersWidth() {
+        try {
+            var colsProcess = new ProcessBuilder("bash", "-c", "tput cols 2> /dev/tty").start();
+            var colsReader = new BufferedReader(new InputStreamReader(colsProcess.getInputStream(), Charset.forName("utf-8")));
+            return Integer.parseInt(colsReader.readLine());
+        } catch (IOException e) {
+            return 0;
+        }
+
     }
 }
