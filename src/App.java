@@ -1,5 +1,6 @@
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -16,6 +17,10 @@ public class App {
     // lista de alumnos
     public Scanner scanner = new Scanner(System.in);
     public List<Carrera> carreras = new ArrayList<>();
+
+    public final String dbDir = System.getProperty("os.name").contains("Linux") ? System.getProperty("user.home") + "/.eli_maciel_programs" : "";
+    public final String dbFile = dbDir + "/db.csv";
+
     public static void main(String[] args) {
         clearConsole();
         new App();
@@ -24,7 +29,7 @@ public class App {
     public App() {
         try {
             String linea;
-            BufferedReader csv = new BufferedReader(new FileReader("db.csv"));
+            BufferedReader csv = new BufferedReader(new FileReader(dbFile));
             while ((linea = csv.readLine()) != null) {
                 var valores = Arrays.asList(linea.split(",")).stream().map(String::trim).toArray(String[]::new);
 
@@ -47,9 +52,6 @@ public class App {
             }
             csv.close();
         } catch (Exception e) {
-            System.out.println("Error al leer la base de datos");
-            e.printStackTrace();
-            scanner.nextLine();
         }
         
 
@@ -370,7 +372,9 @@ public class App {
         o += "\nGrupo: " + Colors.ANSI_CYAN + grupo + Colors.ANSI_RESET;
 
         Alumno alumno = new Alumno(numero, nombre, ncarrera);
-        Grupo.find(ncarrera.getGrupos(), grupo).addAlumno(alumno);
+        Grupo newGrupo = Grupo.find(ncarrera.getGrupos(), grupo);
+        if (newGrupo == null) ncarrera.addGrupo(newGrupo = new Grupo(grupo, ncarrera));
+        newGrupo.addAlumno(alumno);
 
         // Pedir materias
         clearConsole();
@@ -388,26 +392,23 @@ public class App {
         
         clearConsole();
         System.out.println(o+"\n" + Colors.ANSI_GREEN + "Alumno agregado");
-        System.out.println("Presione enter para continuar...");
+        System.out.println(Colors.ANSI_RESET + "Presione enter para continuar...");
         scanner.nextLine();
+        updateDB();
     }
 
     private void updateDB() {
         try {
-            BufferedWriter db = new BufferedWriter(new FileWriter("db.csv"));
+            File dir = new File(dbDir);
+            if (!dir.exists()) dir.mkdirs();
+            BufferedWriter db = new BufferedWriter(new FileWriter(dbFile));
             for (var carrera : this.carreras) for (var alumno : carrera.getAlumnos()) {
                 db.write(alumno.toCSV());
                 db.newLine();
             }
             db.close();
         } catch (FileNotFoundException e) {
-            System.out.println("Error al actualizar la base de datos");
-            e.printStackTrace();
-            scanner.nextLine();
         } catch (IOException e) {
-            System.out.println("Error al actualizar la base de datos");
-            e.printStackTrace();
-            scanner.nextLine();
         }
     }
 
